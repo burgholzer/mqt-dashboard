@@ -1,0 +1,72 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #000;
+}
+
+.navbar {
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.navbar-brand img {
+    height: 70px;
+    margin-left: 20px;
+}
+
+.navbar-title {
+    font-size: 36px;
+    font-weight: bold;
+    font-family: 'Arial Black', sans-serif;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.5em;
+}
+
+.toggle-container i {
+    margin: 0 10px;
+}
+
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-mode .table th {
+    background-color: #0065bd;
+}
+
+.dark-mode .table td {
+    background-color: #333;
+}
+
+.table {
+    margin: 20px auto;
+    color: #0065bd;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.table th, .table td {
+    text-align: center;
+}
+
+.table th {
+    background-color: #0065bd;
+    color: white;
+}
+
+.table td {
+    background-color: #eaf3fc;
+}

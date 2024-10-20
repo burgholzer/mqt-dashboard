@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mqt-dashboard"
+version = "0.1.0"
+description = "A simple data aggregation and visualization tool for the Munich Quantum Toolkit."
+readme = "README.md"
+authors = [
+    { name = "Lukas Burgholzer", email = "burgholzer@me.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3",
+    "matplotlib>=3.9.2",
+    "pandas>=2.2",
+    "plotly>=5.24",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32",
+]
+
+[project.scripts]
+mqt-dashboard = "mqt.dashboard.app:main"
+mqt-dashboard-collection = "mqt.dashboard.data_collection:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mqt"]
