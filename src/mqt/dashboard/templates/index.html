@@ -13,65 +13,67 @@
         <img src="/static/mqt_light.png" alt="MQT Logo" id="mqtLogo">
     </a>
     <div class="navbar-title">The MQT Dashboard</div>
+    <div class="total-counts" style="margin-right: 40px;">
+        <span id="totalStars" class="total-count">⭐ {{ total_stars }}</span>
+        <span id="totalDownloads" class="total-count">📈 {{ total_downloads }}</span>
+    </div>
     <div class="toggle-container" id="darkModeToggle">
         <i id="modeIcon" class="fas fa-moon"></i>
     </div>
 </nav>
 <div class="container mt-5 pt-5 text-center">
-    {{ table|safe }}
-    <h2>GitHub Stars Over Time</h2>
-    {{ plot1|safe }}
-    <h2>PyPI Downloads Over Time</h2>
-    {{ plot2|safe }}
-    <h2>Total GitHub Stars and PyPI Downloads Over Time</h2>
-    {{ plot3|safe }}
+    <div class="card-container" id="cardContainer">
+        {% for repo in sorted_by_stars %}
+        {% include "repo_card.html" %}
+        {% endfor %}
+    </div>
+</div>
+<div class="sort-toggle-text">Sort by</div>
+<div class="sort-toggle" id="sortToggle">
+    <span id="sortIcon">⭐</span>
 </div>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css">
 <script>
   $(document).ready(function() {
-    $('table').DataTable({
-      "paging": false,  // Disable pagination
-      "order": [[ 1, "desc" ]],  // Sort by stars descending
-      columnDefs: [
-        { targets: [4, 5, 6, 7], type: 'num-fmt' }
-      ]
-    });
-
-    // Extend DataTables sorting with custom numeric sorting for suffixes
-    jQuery.extend(jQuery.fn.dataTableExt.oSort, {
-      "num-fmt-pre": function (a) {
-        if (a === "N/A") return -1;
-        if (a.indexOf('k') !== -1) {
-          return parseFloat(a.replace('k', '')) * 1000;
-        } else if (a.indexOf('m') !== -1) {
-          return parseFloat(a.replace('m', '')) * 1000000;
-        }
-        return parseFloat(a);
-      },
-      "num-fmt-asc": function (a, b) {
-        return a - b;
-      },
-      "num-fmt-desc": function (a, b) {
-        return b - a;
-      }
-    });
-
     // Toggle dark mode
     $('#darkModeToggle').on('click', function () {
       $('body').toggleClass('dark-mode');
-      const logo = $('#mqtLogo');
       const icon = $('#modeIcon');
-      if ($('body').hasClass('dark-mode')) {
-        logo.attr('src', '/static/mqt_light.png');
-        icon.removeClass('fa-moon').addClass('fa-sun');
-      } else {
-        logo.attr('src', '/static/mqt_light.png');
-        icon.removeClass('fa-sun').addClass('fa-moon');
-      }
+      icon.toggleClass('fa-moon fa-sun');
+    });
+
+    const sortedByStars = {{ sorted_by_stars | tojson }};
+    const sortedByDownloads = {{ sorted_by_downloads | tojson }};
+
+    // Sort cards dynamically
+    let sortBy = 'stars';
+
+    $('#sortToggle').on('click', function () {
+      sortBy = (sortBy === 'stars') ? 'downloads' : 'stars';
+      $('#sortIcon').text(sortBy === 'stars' ? '⭐' : '📈');
+
+      const data = (sortBy === 'stars') ? sortedByStars : sortedByDownloads;
+
+      $('#cardContainer').html('');
+      data.forEach(repo => {
+        const card = `
+                        <div class="card" data-stars="${repo.stars}" data-downloads="${repo.total_downloads}">
+                            <h3>${repo.repo}</h3>
+                            <div class="stars"><i class="fas fa-star star-icon"></i> ${repo.stars}</div>
+                            <div class="release"><strong>Version:</strong> ${repo.latest_release_version} (${repo.published_at})</div>
+                            ${(repo.daily_downloads != "N/A") ? `
+                                <div class="downloads"><strong>Downloads:</strong> Daily: ${repo.daily_downloads}, Weekly: ${repo.weekly_downloads}, Monthly: ${repo.monthly_downloads}</div>
+                                <div class="totals"><strong>Total Downloads:</strong> ${repo.total_downloads}</div>` : ''}
+                            <div class="links">
+                                <a href="${repo.github_link}" target="_blank"><i class="fab fa-github github-icon"></i> GitHub</a>
+                                ${(repo.pypi_link) ? `<a href="${repo.pypi_link}" target="_blank"><i class="fab fa-python pypi-icon"></i> PyPI</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+        $('#cardContainer').append(card);
+      });
     });
   });
 </script>

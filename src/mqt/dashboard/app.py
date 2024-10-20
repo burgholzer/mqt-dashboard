@@ -1,18 +1,20 @@
 from flask import Flask, render_template
-from .visualization import create_plots, create_summary_table
+from .visualization import create_summary_cards
 
 app = Flask(__name__, template_folder="templates")
 
 
 @app.route("/")
 def index():
-    table = create_summary_table()
-    fig1, fig2, fig3 = create_plots()
-    plot1 = fig1.to_html(full_html=False)
-    plot2 = fig2.to_html(full_html=False)
-    plot3 = fig3.to_html(full_html=False)
+    sorted_by_stars, sorted_by_downloads, total_stars, total_downloads = (
+        create_summary_cards()
+    )
     return render_template(
-        "index.html", table=table, plot1=plot1, plot2=plot2, plot3=plot3
+        "index.html",
+        sorted_by_stars=sorted_by_stars,
+        sorted_by_downloads=sorted_by_downloads,
+        total_stars=total_stars,
+        total_downloads=total_downloads,
     )
 
 
