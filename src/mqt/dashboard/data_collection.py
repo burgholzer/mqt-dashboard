@@ -21,7 +21,7 @@ repos = [
     {"name": "mqt-qusat", "pypi": True},
     {"name": "mqt-qubomaker", "pypi": True},
     {"name": "mqt-qao", "pypi": True},
-    {"name": "mqt-debugger", "pypi": False},  # GitHub-only repository (for now)
+    {"name": "mqt-debugger", "pypi": True},  # GitHub-only repository (for now)
     {"name": "mqt-ddvis", "pypi": False},  # GitHub-only repository
     {"name": "mqt-ion-shuttler", "pypi": False},  # GitHub-only repository
     {"name": "mqt-dasqa", "pypi": False},  # GitHub-only repository
