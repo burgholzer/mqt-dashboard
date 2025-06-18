@@ -1,81 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>The MQT Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <a class="navbar-brand" href="#">
-        <img src="/static/mqt_light.png" alt="MQT Logo" id="mqtLogo">
-    </a>
-    <div class="navbar-title">The MQT Dashboard</div>
-    <div class="total-counts" style="margin-right: 40px;">
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <a class="navbar-brand" href="#">
+        <img src="/static/mqt_light.png" alt="MQT Logo" id="mqtLogo" />
+      </a>
+      <div class="navbar-title">The MQT Dashboard</div>
+      <div class="total-counts" style="margin-right: 40px">
         <span id="totalStars" class="total-count">⭐ {{ total_stars }}</span>
-        <span id="totalDownloads" class="total-count">📈 {{ total_downloads }}</span>
-    </div>
-    <div class="toggle-container" id="darkModeToggle">
+        <span id="totalDownloads" class="total-count"
+          >📈 {{ total_downloads }}</span
+        >
+      </div>
+      <div class="toggle-container" id="darkModeToggle">
         <i id="modeIcon" class="fas fa-moon"></i>
+      </div>
+    </nav>
+    <div class="container mt-5 pt-5 text-center">
+      <div class="card-container" id="cardContainer">
+        {% for repo in sorted_by_stars %} {% include "repo_card.html" %} {%
+        endfor %}
+      </div>
     </div>
-</nav>
-<div class="container mt-5 pt-5 text-center">
-    <div class="card-container" id="cardContainer">
-        {% for repo in sorted_by_stars %}
-        {% include "repo_card.html" %}
-        {% endfor %}
+    <div class="sort-toggle-text">Sort by</div>
+    <div class="sort-toggle" id="sortToggle">
+      <span id="sortIcon">⭐</span>
     </div>
-</div>
-<div class="sort-toggle-text">Sort by</div>
-<div class="sort-toggle" id="sortToggle">
-    <span id="sortIcon">⭐</span>
-</div>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-  $(document).ready(function() {
-    // Toggle dark mode
-    $('#darkModeToggle').on('click', function () {
-      $('body').toggleClass('dark-mode');
-      const icon = $('#modeIcon');
-      icon.toggleClass('fa-moon fa-sun');
-    });
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        // Toggle dark mode
+        $('#darkModeToggle').on('click', function () {
+          $('body').toggleClass('dark-mode');
+          const icon = $('#modeIcon');
+          icon.toggleClass('fa-moon fa-sun');
+        });
 
-    const sortedByStars = {{ sorted_by_stars | tojson }};
-    const sortedByDownloads = {{ sorted_by_downloads | tojson }};
+        const sortedByStars = {{ sorted_by_stars | tojson }};
+        const sortedByDownloads = {{ sorted_by_downloads | tojson }};
 
-    // Sort cards dynamically
-    let sortBy = 'stars';
+        // Sort cards dynamically
+        let sortBy = 'stars';
 
-    $('#sortToggle').on('click', function () {
-      sortBy = (sortBy === 'stars') ? 'downloads' : 'stars';
-      $('#sortIcon').text(sortBy === 'stars' ? '⭐' : '📈');
+        $('#sortToggle').on('click', function () {
+          sortBy = (sortBy === 'stars') ? 'downloads' : 'stars';
+          $('#sortIcon').text(sortBy === 'stars' ? '⭐' : '📈');
 
-      const data = (sortBy === 'stars') ? sortedByStars : sortedByDownloads;
+          const data = (sortBy === 'stars') ? sortedByStars : sortedByDownloads;
 
-      $('#cardContainer').html('');
-      data.forEach(repo => {
-        const card = `
-                        <div class="card" data-stars="${repo.stars}" data-downloads="${repo.total_downloads}">
-                            <h3>${repo.repo}</h3>
-                            <div class="stars"><i class="fas fa-star star-icon"></i> ${repo.stars}</div>
-                            <div class="release"><strong>Version:</strong> ${repo.latest_release_version} (${repo.published_at})</div>
-                            ${(repo.daily_downloads != "N/A") ? `
-                                <div class="downloads"><strong>Downloads:</strong> Daily: ${repo.daily_downloads}, Weekly: ${repo.weekly_downloads}, Monthly: ${repo.monthly_downloads}</div>
-                                <div class="totals"><strong>Total Downloads:</strong> ${repo.total_downloads}</div>` : ''}
-                            <div class="links">
-                                <a href="${repo.github_link}" target="_blank"><i class="fab fa-github github-icon"></i> GitHub</a>
-                                ${(repo.pypi_link) ? `<a href="${repo.pypi_link}" target="_blank"><i class="fab fa-python pypi-icon"></i> PyPI</a>` : ''}
+          $('#cardContainer').html('');
+          data.forEach(repo => {
+            const card = `
+                            <div class="card" data-stars="${repo.stars}" data-downloads="${repo.total_downloads}">
+                                <h3>${repo.repo}</h3>
+                                <div class="stars"><i class="fas fa-star star-icon"></i> ${repo.stars}</div>
+                                <div class="release"><strong>Version:</strong> ${repo.latest_release_version} (${repo.published_at})</div>
+                                ${(repo.daily_downloads != "N/A") ? `
+                                    <div class="downloads"><strong>Downloads:</strong> Daily: ${repo.daily_downloads}, Weekly: ${repo.weekly_downloads}, Monthly: ${repo.monthly_downloads}</div>
+                                    <div class="totals"><strong>Total Downloads:</strong> ${repo.total_downloads}</div>` : ''}
+                                <div class="links">
+                                    <a href="${repo.github_link}" target="_blank"><i class="fab fa-github github-icon"></i> GitHub</a>
+                                    ${(repo.pypi_link) ? `<a href="${repo.pypi_link}" target="_blank"><i class="fab fa-python pypi-icon"></i> PyPI</a>` : ''}
+                                </div>
                             </div>
-                        </div>
-                    `;
-        $('#cardContainer').append(card);
+                        `;
+            $('#cardContainer').append(card);
+          });
+        });
       });
-    });
-  });
-</script>
-</body>
+    </script>
+  </body>
 </html>

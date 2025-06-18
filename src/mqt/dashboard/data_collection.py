@@ -1,9 +1,15 @@
-from dotenv import load_dotenv
+"""Collects data from GitHub and PyPI for MQT repositories."""
+
+from __future__ import annotations
+
 import os
-import requests
-import pandas as pd
 import time
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import cast
+
+import pandas as pd
+import requests
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
@@ -44,12 +50,20 @@ pepy_api_key = os.getenv("PEPY_API_KEY")
 pepy_headers = {"X-Api-Key": pepy_api_key} if pepy_api_key else {}
 
 
-def get_github_data(repo: str):
+def get_github_data(repo: str) -> dict[str, int | str | None]:
+    """Fetch GitHub data for a given repository.
+
+    Args:
+        repo: The name of the repository (e.g., "mqt-core").
+
+    Returns:
+        A dictionary containing the number of stars, latest release version, and published date.
+    """
     url = f"{github_base_url}{repo}"
-    response = requests.get(url, headers=github_headers)
+    response = requests.get(url, headers=github_headers, timeout=60)
     data = response.json()
     version_url = f"{url}/releases/latest"
-    version_response = requests.get(version_url, headers=github_headers)
+    version_response = requests.get(version_url, headers=github_headers, timeout=60)
     version_data = version_response.json()
     return {
         "stars": data.get("stargazers_count", 0),
@@ -58,22 +72,37 @@ def get_github_data(repo: str):
     }
 
 
-def get_pepy_data(package: str):
+def get_pepy_data(package: str) -> dict[str, int | float | None]:
+    """Fetch download statistics from Pepy for a given package.
+
+    Args:
+        package: The name of the package (e.g., "mqt-core").
+
+    Returns:
+        A dictionary containing total downloads and other statistics.
+    """
     pepy_url = f"{pepy_base_url}{package}"
     while True:
-        pepy_response = requests.get(pepy_url, headers=pepy_headers)
+        pepy_response = requests.get(pepy_url, headers=pepy_headers, timeout=60)
         if pepy_response.status_code == 429:
             print("Rate limit exceeded. Waiting 60 seconds before retrying...")
             time.sleep(60)
         else:
             break
-    pepy_data = pepy_response.json()
-    return pepy_data
+    return pepy_response.json()  # type: ignore[no-any-return]
 
 
-def get_pypi_data(package: str):
+def get_pypi_data(package: str) -> dict[str, int | float | None]:
+    """Fetch download statistics from PyPI for a given package.
+
+    Args:
+        package: The name of the package (e.g., "mqt-core").
+
+    Returns:
+        A dictionary containing daily, weekly, monthly, and total downloads.
+    """
     recent_downloads_url = f"{pypistats_base_url}{package}/recent"
-    downloads_response = requests.get(recent_downloads_url)
+    downloads_response = requests.get(recent_downloads_url, timeout=60)
     downloads = downloads_response.json()
     downloads_data = downloads.get("data", {})
     pepy_data = get_pepy_data(package)
@@ -86,10 +115,15 @@ def get_pypi_data(package: str):
 
 
 def collect_data() -> pd.DataFrame:
+    """Collect data from GitHub and PyPI for the specified repositories.
+
+    Returns:
+        A pandas DataFrame containing the collected data.
+    """
     data = []
-    timestamp = datetime.now()
+    timestamp = datetime.now(tz=UTC)
     for repo in repos:
-        repo_name = repo["name"]
+        repo_name = cast("str", repo["name"])
         print(f"Collecting data for {repo_name}...")
         github_data = get_github_data(repo_name)
         if repo["pypi"]:
@@ -103,28 +137,27 @@ def collect_data() -> pd.DataFrame:
                 "monthly_downloads": None,
                 "total_downloads": None,
             }
-        data.append(
-            {
-                "timestamp": timestamp,
-                "repo": repo_name,
-                "stars": github_data["stars"],
-                "latest_release_version": github_data["latest_release_version"],
-                "published_at": github_data["published_at"],
-                "daily_downloads": pypi_data["daily_downloads"],
-                "weekly_downloads": pypi_data["weekly_downloads"],
-                "monthly_downloads": pypi_data["monthly_downloads"],
-                "total_downloads": pypi_data["total_downloads"],
-            }
-        )
-    df = pd.DataFrame(data)
-    df.to_csv("data/mqt.csv")
-    return df
+        data.append({
+            "timestamp": timestamp,
+            "repo": repo_name,
+            "stars": github_data["stars"],
+            "latest_release_version": github_data["latest_release_version"],
+            "published_at": github_data["published_at"],
+            "daily_downloads": pypi_data["daily_downloads"],
+            "weekly_downloads": pypi_data["weekly_downloads"],
+            "monthly_downloads": pypi_data["monthly_downloads"],
+            "total_downloads": pypi_data["total_downloads"],
+        })
+    repo_data = pd.DataFrame(data)
+    repo_data.to_csv("data/mqt.csv")
+    return repo_data
 
 
 def main() -> None:
-    df = collect_data()
+    """Main function to collect data and save it to a CSV file."""
+    repo_data = collect_data()
     print("Data collection complete. Latest data:")
-    print(df)
+    print(repo_data)
 
 
 if __name__ == "__main__":
