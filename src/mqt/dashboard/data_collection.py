@@ -16,14 +16,16 @@ repos = [
     {"name": "mqt-qecc", "pypi": True},
     {"name": "mqt-bench", "pypi": True},
     {"name": "mqt-predictor", "pypi": True},
+    {"name": "mqt-problemsolver", "pypi": True},
     {"name": "mqt-qudits", "pypi": True},
     {"name": "mqt-syrec", "pypi": True},
     {"name": "mqt-qusat", "pypi": True},
     {"name": "mqt-qubomaker", "pypi": True},
     {"name": "mqt-qao", "pypi": True},
-    {"name": "mqt-debugger", "pypi": True},  # GitHub-only repository (for now)
+    {"name": "mqt-debugger", "pypi": True},
+    {"name": "mqt-yaqs", "pypi": True},
+    {"name": "mqt-ion-shuttler", "pypi": True},
     {"name": "mqt-ddvis", "pypi": False},  # GitHub-only repository
-    {"name": "mqt-ion-shuttler", "pypi": False},  # GitHub-only repository
     {"name": "mqt-dasqa", "pypi": False},  # GitHub-only repository
     {"name": "mqt-workflows", "pypi": False},  # GitHub-only repository
     {"name": "mqt-planqk", "pypi": False},  # GitHub-only repository
@@ -91,6 +93,8 @@ def collect_data() -> pd.DataFrame:
         print(f"Collecting data for {repo_name}...")
         github_data = get_github_data(repo_name)
         if repo["pypi"]:
+            if repo_name == "mqt-ion-shuttler":
+                repo_name = "mqt-ionshuttler"
             pypi_data = get_pypi_data(repo_name)
         else:
             pypi_data = {
