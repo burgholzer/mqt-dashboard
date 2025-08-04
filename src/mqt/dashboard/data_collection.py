@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import time
 from datetime import UTC, datetime
-from typing import cast
 
 import pandas as pd
 import requests
@@ -15,31 +14,33 @@ from dotenv import load_dotenv
 load_dotenv()
 
 repos = [
-    {"name": "mqt-core", "pypi": True},
-    {"name": "mqt-ddsim", "pypi": True},
-    {"name": "mqt-qmap", "pypi": True},
-    {"name": "mqt-qcec", "pypi": True},
-    {"name": "mqt-qecc", "pypi": True},
-    {"name": "mqt-bench", "pypi": True},
-    {"name": "mqt-predictor", "pypi": True},
-    {"name": "mqt-problemsolver", "pypi": True},
-    {"name": "mqt-qudits", "pypi": True},
-    {"name": "mqt-syrec", "pypi": True},
-    {"name": "mqt-qusat", "pypi": True},
-    {"name": "mqt-qubomaker", "pypi": True},
-    {"name": "mqt-qao", "pypi": True},
-    {"name": "mqt-debugger", "pypi": True},
-    {"name": "mqt-yaqs", "pypi": True},
-    {"name": "mqt-ion-shuttler", "pypi": True},
-    {"name": "mqt-ddvis", "pypi": False},  # GitHub-only repository
-    {"name": "mqt-dasqa", "pypi": False},  # GitHub-only repository
-    {"name": "mqt-workflows", "pypi": False},  # GitHub-only repository
-    {"name": "mqt-planqk", "pypi": False},  # GitHub-only repository
-    {"name": "mqt", "pypi": False},  # GitHub-only repository
+    # Repos in the munich-quantum-toolkit organization
+    {"github_repo": "core", "org": "munich-quantum-toolkit", "pypi_package": "mqt-core"},
+    {"github_repo": "ddsim", "org": "munich-quantum-toolkit", "pypi_package": "mqt-ddsim"},
+    {"github_repo": "qmap", "org": "munich-quantum-toolkit", "pypi_package": "mqt-qmap"},
+    {"github_repo": "qcec", "org": "munich-quantum-toolkit", "pypi_package": "mqt-qcec"},
+    {"github_repo": "qecc", "org": "munich-quantum-toolkit", "pypi_package": "mqt-qecc"},
+    {"github_repo": "bench", "org": "munich-quantum-toolkit", "pypi_package": "mqt-bench"},
+    {"github_repo": "predictor", "org": "munich-quantum-toolkit", "pypi_package": "mqt-predictor"},
+    {"github_repo": "syrec", "org": "munich-quantum-toolkit", "pypi_package": "mqt-syrec"},
+    {"github_repo": "qusat", "org": "munich-quantum-toolkit", "pypi_package": "mqt-qusat"},
+    {"github_repo": "debugger", "org": "munich-quantum-toolkit", "pypi_package": "mqt-debugger"},
+    {"github_repo": "yaqs", "org": "munich-quantum-toolkit", "pypi_package": "mqt-yaqs"},
+    {"github_repo": "ddvis", "org": "munich-quantum-toolkit"},
+    {"github_repo": "workflows", "org": "munich-quantum-toolkit"},
+    {"github_repo": ".github", "org": "munich-quantum-toolkit"},
+    # Repos still in the cda-tum organization
+    {"github_repo": "mqt-naviz", "org": "cda-tum", "pypi_package": "mqt-naviz"},
+    {"github_repo": "mqt-qao", "org": "cda-tum", "pypi_package": "mqt-qao"},
+    {"github_repo": "mqt-planqk", "org": "cda-tum"},
+    {"github_repo": "mqt-qubomaker", "org": "cda-tum", "pypi_package": "mqt-qubomaker"},
+    {"github_repo": "mqt-problemsolver", "org": "cda-tum", "pypi_package": "mqt-problemsolver"},
+    {"github_repo": "mqt-qudits", "org": "cda-tum", "pypi_package": "mqt-qudits"},
+    {"github_repo": "mqt-ion-shuttler", "org": "cda-tum", "pypi_package": "mqt-ionshuttler"},
+    {"github_repo": "mqt-dasqa", "org": "cda-tum"},
 ]
 
-github_org = "cda-tum"
-github_base_url = f"https://api.github.com/repos/{github_org}/"
+github_base_url = "https://api.github.com/repos/"
 pypistats_base_url = "https://pypistats.org/api/packages/"
 pepy_base_url = "https://api.pepy.tech/api/v2/projects/"
 
@@ -50,16 +51,17 @@ pepy_api_key = os.getenv("PEPY_API_KEY")
 pepy_headers = {"X-Api-Key": pepy_api_key} if pepy_api_key else {}
 
 
-def get_github_data(repo: str) -> dict[str, int | str | None]:
+def get_github_data(org: str, repo: str) -> dict[str, int | str | None]:
     """Fetch GitHub data for a given repository.
 
     Args:
-        repo: The name of the repository (e.g., "mqt-core").
+        org: The name of the GitHub organization.
+        repo: The name of the repository (e.g., "core").
 
     Returns:
         A dictionary containing the number of stars, latest release version, and published date.
     """
-    url = f"{github_base_url}{repo}"
+    url = f"{github_base_url}{org}/{repo}"
     response = requests.get(url, headers=github_headers, timeout=60)
     data = response.json()
     version_url = f"{url}/releases/latest"
@@ -123,13 +125,14 @@ def collect_data() -> pd.DataFrame:
     data = []
     timestamp = datetime.now(tz=UTC)
     for repo in repos:
-        repo_name = cast("str", repo["name"])
-        print(f"Collecting data for {repo_name}...")
-        github_data = get_github_data(repo_name)
-        if repo["pypi"]:
-            if repo_name == "mqt-ion-shuttler":
-                repo_name = "mqt-ionshuttler"
-            pypi_data = get_pypi_data(repo_name)
+        repo_name = repo["github_repo"]
+        repo_org = repo["org"]
+        print(f"Collecting data for {repo_org}/{repo_name}...")
+        github_data = get_github_data(repo_org, repo_name)
+        if "pypi_package" in repo:
+            pypi_name = repo["pypi_package"]
+            pypi_data = get_pypi_data(pypi_name)
+            repo_identifier = pypi_name
         else:
             pypi_data = {
                 "daily_downloads": None,
@@ -137,9 +140,10 @@ def collect_data() -> pd.DataFrame:
                 "monthly_downloads": None,
                 "total_downloads": None,
             }
+            repo_identifier = repo_name
         data.append({
             "timestamp": timestamp,
-            "repo": repo_name,
+            "repo": repo_identifier,
             "stars": github_data["stars"],
             "latest_release_version": github_data["latest_release_version"],
             "published_at": github_data["published_at"],
