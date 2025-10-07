@@ -29,6 +29,7 @@ repos = [
     {"github_repo": "naviz", "org": "munich-quantum-toolkit"},
     {"github_repo": "problemsolver", "org": "munich-quantum-toolkit", "pypi_package": "mqt-problemsolver"},
     {"github_repo": "qudits", "org": "munich-quantum-toolkit", "pypi_package": "mqt-qudits"},
+    {"github_repo": "ionshuttler", "org": "munich-quantum-toolkit", "pypi_package": "mqt-ionshuttler"},
     {"github_repo": "ddvis", "org": "munich-quantum-toolkit"},
     {"github_repo": "workflows", "org": "munich-quantum-toolkit"},
     {"github_repo": "templates", "org": "munich-quantum-toolkit"},
@@ -37,7 +38,6 @@ repos = [
     {"github_repo": "mqt-qao", "org": "cda-tum", "pypi_package": "mqt-qao"},
     {"github_repo": "mqt-planqk", "org": "cda-tum"},
     {"github_repo": "mqt-qubomaker", "org": "cda-tum", "pypi_package": "mqt-qubomaker"},
-    {"github_repo": "mqt-ion-shuttler", "org": "cda-tum", "pypi_package": "mqt-ionshuttler"},
     {"github_repo": "mqt-dasqa", "org": "cda-tum"},
 ]
 
