@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 
-def create_summary_cards() -> tuple[list[dict], list[dict], int, str]:  # type: ignore[type-arg]
+def create_summary_cards() -> tuple[list[dict], list[dict], str, str]:  # type: ignore[type-arg]
     """Create summary cards for the MQT dashboard.
 
     Returns:
@@ -47,7 +47,7 @@ def create_summary_cards() -> tuple[list[dict], list[dict], int, str]:  # type: 
     return (
         sorted_by_stars,
         sorted_by_downloads,
-        total_stars,
+        format_count(total_stars),
         format_count(total_downloads),
     )
 
