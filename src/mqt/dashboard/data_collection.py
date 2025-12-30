@@ -54,11 +54,6 @@ repos = [
     {"github_repo": "workflows", "org": "munich-quantum-toolkit"},
     {"github_repo": "templates", "org": "munich-quantum-toolkit"},
     {"github_repo": ".github", "org": "munich-quantum-toolkit"},
-    # Repos still in the cda-tum organization
-    {"github_repo": "mqt-qao", "org": "cda-tum", "pypi_package": "mqt-qao"},
-    {"github_repo": "mqt-planqk", "org": "cda-tum"},
-    {"github_repo": "mqt-qubomaker", "org": "cda-tum", "pypi_package": "mqt-qubomaker"},
-    {"github_repo": "mqt-dasqa", "org": "cda-tum"},
 ]
 
 github_base_url = "https://api.github.com/repos/"
