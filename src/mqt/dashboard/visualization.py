@@ -28,6 +28,9 @@ def create_summary_cards() -> tuple[list[dict], list[dict], str, str]:  # type: 
         lambda x: f"https://pypi.org/project/{x['repo']}" if x["daily_downloads"] != "N/A" else "",
         axis=1,
     )
+    latest_data["docs_link"] = latest_data.apply(
+        lambda x: f"https://mqt.readthedocs.io/en/stable/{x['docs_slug']}/" if pd.notna(x["docs_slug"]) else "", axis=1
+    )
 
     # Sort by total downloads (without formatting)
     latest_data = latest_data.sort_values(by="total_downloads", ascending=False)

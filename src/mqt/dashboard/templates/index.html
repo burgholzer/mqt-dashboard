@@ -76,6 +76,7 @@
                                 <div class="links">
                                     <a href="${repo.github_link}" target="_blank"><i class="fab fa-github github-icon"></i> GitHub</a>
                                     ${(repo.pypi_link) ? `<a href="${repo.pypi_link}" target="_blank"><i class="fab fa-python pypi-icon"></i> PyPI</a>` : ''}
+                                    ${(repo.docs_link) ? `<a href="${repo.docs_link}" target="_blank"><i class="fas fa-book docs-icon"></i> Docs</a>` : ''}
                                 </div>
                             </div>
                         `;

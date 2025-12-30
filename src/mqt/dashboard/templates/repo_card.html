@@ -28,6 +28,10 @@
     <a href="{{ repo.pypi_link }}" target="_blank"
       ><i class="fab fa-python pypi-icon"></i> PyPI</a
     >
+    {% endif %} {% if repo.docs_link %}
+    <a href="{{ repo.docs_link }}" target="_blank"
+      ><i class="fas fa-book docs-icon"></i> Docs</a
+    >
     {% endif %}
   </div>
 </div>
