@@ -11,7 +11,7 @@
     <strong>Version:</strong> {{ repo.latest_release_version }} ({{
     repo.published_at }})
   </div>
-  {% if repo.daily_downloads != "N/A" %}
+  {% if repo.daily_downloads != "nan" %}
   <div class="downloads">
     <strong>Downloads:</strong> Daily: {{ repo.daily_downloads }}, Weekly: {{
     repo.weekly_downloads }}, Monthly: {{ repo.monthly_downloads }}

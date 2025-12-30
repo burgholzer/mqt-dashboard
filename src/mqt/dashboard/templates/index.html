@@ -70,7 +70,7 @@
                                 <h3>${repo.repo}</h3>
                                 <div class="stars"><i class="fas fa-star star-icon"></i> ${repo.stars}</div>
                                 <div class="release"><strong>Version:</strong> ${repo.latest_release_version} (${repo.published_at})</div>
-                                ${(repo.daily_downloads != "N/A") ? `
+                                ${(repo.daily_downloads != "nan") ? `
                                     <div class="downloads"><strong>Downloads:</strong> Daily: ${repo.daily_downloads}, Weekly: ${repo.weekly_downloads}, Monthly: ${repo.monthly_downloads}</div>
                                     <div class="totals"><strong>Total Downloads:</strong> ${repo.total_downloads}</div>` : ''}
                                 <div class="links">

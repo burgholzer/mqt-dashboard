@@ -25,7 +25,7 @@ def create_summary_cards() -> tuple[list[dict], list[dict], str, str]:  # type: 
 
     latest_data["github_link"] = latest_data["repo"].apply(lambda x: f"https://github.com/cda-tum/{x}")
     latest_data["pypi_link"] = latest_data.apply(
-        lambda x: f"https://pypi.org/project/{x['repo']}" if x["daily_downloads"] != "N/A" else "",
+        lambda x: f"https://pypi.org/project/{x['repo']}" if pd.notna(x["daily_downloads"]) else "",
         axis=1,
     )
     latest_data["docs_link"] = latest_data.apply(
