@@ -39,5 +39,5 @@ explicit_package_bases = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = ["flask.*", "dotenv.*"]
+module = ["dotenv.*"]
 ignore_missing_imports = true
