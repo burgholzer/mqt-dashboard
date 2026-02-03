@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import os
 import time
+from contextlib import suppress
 from datetime import UTC, datetime
+from json import JSONDecodeError
 
 import pandas as pd
 import requests
@@ -121,8 +123,9 @@ def get_pypi_data(package: str) -> dict[str, int | float | None]:
     """
     recent_downloads_url = f"{pypistats_base_url}{package}/recent"
     downloads_response = requests.get(recent_downloads_url, timeout=60)
-    downloads = downloads_response.json()
-    downloads_data = downloads.get("data", {})
+    downloads_data = {}
+    with suppress(JSONDecodeError):
+        downloads_data = downloads_response.json()["data"]
     pepy_data = get_pepy_data(package)
     return {
         "daily_downloads": downloads_data.get("last_day", 0),
