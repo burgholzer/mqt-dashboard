@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+import operator
 import os
 import time
-from contextlib import suppress
 from datetime import UTC, datetime
-from json import JSONDecodeError
 
 import pandas as pd
 import requests
@@ -62,6 +61,12 @@ github_base_url = "https://api.github.com/repos/"
 pypistats_base_url = "https://pypistats.org/api/packages/"
 pepy_base_url = "https://api.pepy.tech/api/v2/projects/"
 
+# PyPI Stats applies an API-wide IP rate limit. Its documentation asks clients to
+# cache requests, and the collector only needs one request per package each run.
+pypistats_request_interval_seconds = 12
+pypistats_rate_limit_retry_seconds = 60
+_last_pypistats_request = 0.0
+
 github_token = os.getenv("GITHUB_TOKEN")
 github_headers = {"Authorization": f"token {github_token}"} if github_token else {}
 
@@ -112,6 +117,39 @@ def get_pepy_data(package: str) -> dict[str, int | float | None]:
     return pepy_response.json()  # type: ignore[no-any-return]
 
 
+def get_pypistats_data(package: str) -> list[dict[str, int | str]]:
+    """Fetch mirror-excluded daily download data while respecting PyPI Stats' limit.
+
+    Returns:
+        The daily download records returned by PyPI Stats.
+    """
+    global _last_pypistats_request  # noqa: PLW0603
+
+    overall_downloads_url = f"{pypistats_base_url}{package}/overall"
+    while True:
+        elapsed = time.monotonic() - _last_pypistats_request
+        if elapsed < pypistats_request_interval_seconds:
+            time.sleep(pypistats_request_interval_seconds - elapsed)
+
+        downloads_response = requests.get(
+            overall_downloads_url,
+            params={"mirrors": "false"},
+            timeout=60,
+        )
+        _last_pypistats_request = time.monotonic()
+        if downloads_response.status_code != 429:
+            downloads_response.raise_for_status()
+            return downloads_response.json().get("data", [])  # type: ignore[no-any-return]
+
+        retry_after = downloads_response.headers.get("Retry-After")
+        try:
+            retry_seconds = float(retry_after) if retry_after else pypistats_rate_limit_retry_seconds
+        except ValueError:
+            retry_seconds = pypistats_rate_limit_retry_seconds
+        print(f"PyPI Stats rate limit exceeded. Waiting {retry_seconds:g} seconds before retrying...")
+        time.sleep(retry_seconds)
+
+
 def get_pypi_data(package: str) -> dict[str, int | float | None]:
     """Fetch download statistics from PyPI for a given package.
 
@@ -120,17 +158,25 @@ def get_pypi_data(package: str) -> dict[str, int | float | None]:
 
     Returns:
         A dictionary containing daily, weekly, monthly, and total downloads.
+
+    Raises:
+        ValueError: If PyPI Stats has no daily download data for the package.
     """
-    recent_downloads_url = f"{pypistats_base_url}{package}/recent"
-    downloads_response = requests.get(recent_downloads_url, timeout=60)
-    downloads_data = {}
-    with suppress(JSONDecodeError):
-        downloads_data = downloads_response.json()["data"]
+    # The /recent endpoint is aggressively IP-rate-limited. The /overall endpoint
+    # provides the same daily data, so calculate the documented 1/7/30-day totals
+    # locally instead. ``mirrors=false`` keeps the values consistent with /recent.
+    daily_downloads = sorted(get_pypistats_data(package), key=operator.itemgetter("date"))
+    if not daily_downloads:
+        msg = f"PyPI Stats returned no download data for {package}"
+        raise ValueError(msg)
+
+    def downloads_for_last_days(days: int) -> int:
+        return sum(int(item["downloads"]) for item in daily_downloads[-days:])
     pepy_data = get_pepy_data(package)
     return {
-        "daily_downloads": downloads_data.get("last_day", 0),
-        "weekly_downloads": downloads_data.get("last_week", 0),
-        "monthly_downloads": downloads_data.get("last_month", 0),
+        "daily_downloads": downloads_for_last_days(1),
+        "weekly_downloads": downloads_for_last_days(7),
+        "monthly_downloads": downloads_for_last_days(30),
         "total_downloads": pepy_data.get("total_downloads", 0),
     }
 
