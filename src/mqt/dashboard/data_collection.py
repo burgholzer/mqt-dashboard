@@ -172,6 +172,7 @@ def get_pypi_data(package: str) -> dict[str, int | float | None]:
 
     def downloads_for_last_days(days: int) -> int:
         return sum(int(item["downloads"]) for item in daily_downloads[-days:])
+
     pepy_data = get_pepy_data(package)
     return {
         "daily_downloads": downloads_for_last_days(1),
