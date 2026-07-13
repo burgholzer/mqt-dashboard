@@ -23,6 +23,7 @@ dependencies = [
 [project.scripts]
 mqt-dashboard = "mqt.dashboard.app:main"
 mqt-dashboard-collection = "mqt.dashboard.data_collection:main"
+mqt-dashboard-build = "mqt.dashboard.static_site:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mqt"]

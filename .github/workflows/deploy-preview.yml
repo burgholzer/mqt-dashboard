@@ -1,0 +1,41 @@
+name: Deploy pull request preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Forks do not receive repository secrets or a write-capable GITHUB_TOKEN.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        if: github.event.action != 'closed'
+      - run: uv sync --locked
+        if: github.event.action != 'closed'
+      - name: Collect dashboard data
+        if: github.event.action != 'closed'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PEPY_API_KEY: ${{ secrets.PEPY_API_KEY }}
+        run: uv run mqt-dashboard-collection
+      - name: Build static site
+        if: github.event.action != 'closed'
+        run: uv run mqt-dashboard-build --output site
+      - name: Publish or remove preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: site
+          preview-branch: gh-pages
+          wait-for-pages-deployment: true
+          token: ${{ secrets.PAGES_DEPLOY_TOKEN }}

@@ -1,0 +1,39 @@
+name: Deploy dashboard
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 05:00 CET (06:00 CEST) -- GitHub Actions schedules use UTC.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Collect dashboard data
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PEPY_API_KEY: ${{ secrets.PEPY_API_KEY }}
+        run: uv run mqt-dashboard-collection
+      - name: Build static site
+        run: uv run mqt-dashboard-build --output site
+      - name: Publish GitHub Pages site
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: site
+          clean: true
+          clean-exclude: pr-preview
+          token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
