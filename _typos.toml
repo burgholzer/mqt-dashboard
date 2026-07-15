@@ -1,0 +1,3 @@
+[default.extend-words]
+# CPY is a valid ruff rule code prefix (copyright)
+CPY = "CPY"
