@@ -123,7 +123,7 @@ def get_pypistats_data(package: str) -> list[dict[str, int | str]]:
     Returns:
         The daily download records returned by PyPI Stats.
     """
-    global _last_pypistats_request  # noqa: PLW0603
+    global _last_pypistats_request  # ruff: ignore[global-statement]
 
     overall_downloads_url = f"{pypistats_base_url}{package}/overall"
     while True:
