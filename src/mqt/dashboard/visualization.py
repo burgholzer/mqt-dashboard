@@ -45,7 +45,7 @@ def create_summary_cards() -> tuple[list[dict], list[dict], str, str]:  # type: 
     sorted_by_stars = latest_data.sort_values(by="stars", ascending=False).to_dict(orient="records")
 
     total_stars = latest_data["stars"].sum()
-    total_downloads = repo_data["total_downloads"].sum()
+    total_downloads = repo_data["total_downloads"].sum(min_count=repo_data["daily_downloads"].notna().sum())
 
     return (
         sorted_by_stars,
@@ -64,6 +64,8 @@ def format_count(count: float) -> str:
     Returns:
         A formatted string representing the count.
     """
+    if pd.isna(count):
+        return "Unavailable"
     if count >= 1e6:
         return f"{count / 1e6:.1f}m"
     if count >= 1e3:
