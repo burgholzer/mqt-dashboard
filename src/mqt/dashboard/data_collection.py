@@ -114,6 +114,10 @@ def get_pepy_data(package: str) -> dict[str, int | float | None]:
             time.sleep(60)
         else:
             break
+    if pepy_response.status_code == 409 or pepy_response.status_code >= 500:
+        print(f"Pepy is unavailable for {package} (HTTP {pepy_response.status_code}); total downloads unavailable.")
+        return {"total_downloads": None}
+    pepy_response.raise_for_status()
     return pepy_response.json()  # type: ignore[no-any-return]
 
 
